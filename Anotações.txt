@@ -1,0 +1,14 @@
+No ambiente de produção usamos https, por exemplo, nosso owncloud no servidor da vivo está em https://ocs.uneel.com.br
+Porém para desenvolvimento podemos usar via http.
+No servidor temos um proxy reverso com nginx que direciona a url para o endereço do owncloud no docker e a porta, assim, não é 
+preciso expor a porta e nem o ip interno do owncloud no docker.
+
+Eu preciso conectar a APi no Owncloud
+
+O postgres precisa estar rodando na mesma rede que foi declarada no arquivo docker-compose.yaml do rabbitmq. 
+Precisa primeiro rodar o postgres. A imagem dele eu encontro na página do docker hub, lá tem um modelo do arquivo docker-composer.yml 
+para usar. Baseado no modelo do docker hub eu vou criar o do postgres e no parâmetro network eu crio com o mesmo nome que o rabbit 
+está usando.
+
+O editor config, eslint e gitignore não precisa colocar na pasta do rabbit porque não tem código javascript para ser monitorado.
+
