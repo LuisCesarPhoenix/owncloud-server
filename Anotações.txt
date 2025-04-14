@@ -3,12 +3,79 @@ Porém para desenvolvimento podemos usar via http.
 No servidor temos um proxy reverso com nginx que direciona a url para o endereço do owncloud no docker e a porta, assim, não é 
 preciso expor a porta e nem o ip interno do owncloud no docker.
 
-Eu preciso conectar a APi no Owncloud
+O postgres precisa estar rodando na mesma rede que foi declarada no arquivo docker-compose.yml do rabbitmq. 
+Precisa primeiro rodar o postgres. A imagem dele eu encontro na página do docker hub, lá tem um modelo do arquivo 
+docker-composer.yml para usar. Baseado no modelo do docker hub eu vou criar o do postgres e no parâmetro network eu crio com o mesmo 
+nome que o rabbit está usando.
 
-O postgres precisa estar rodando na mesma rede que foi declarada no arquivo docker-compose.yaml do rabbitmq. 
-Precisa primeiro rodar o postgres. A imagem dele eu encontro na página do docker hub, lá tem um modelo do arquivo docker-composer.yml 
-para usar. Baseado no modelo do docker hub eu vou criar o do postgres e no parâmetro network eu crio com o mesmo nome que o rabbit 
-está usando.
+http://localhost/owncloud/api/process-owncloud/file01.csv
+http://localhost/owncloud/remote.php/dav/files/owncloud_admin/
 
-O editor config, eslint e gitignore não precisa colocar na pasta do rabbit porque não tem código javascript para ser monitorado.
+1)Verificar se o OwnCloud está rodando
 
+No host (ou no WSL2 se estiver usando ele como base), execute:
+curl http://localhost/owncloud/status.php 
+curl http://localhost:8080/owncloud/status.php
+Se der certo e retornar algo como um JSON ({"installed":true,...}), então o OwnCloud está de pé e funcionando. Se não funcionar, 
+você precisa iniciar o OwnCloud.
+
+Observação: O owncloud está rodando na porta 80 e na porta 8080. Eu tenho que deixar somente na porta 8080.
+
+2)O serviço OwnCloud está na porta 8080?
+
+Verifique qual porta o OwnCloud está usando no host(na sua máquina). Ele pode estar exposto, por exemplo, na porta padrão 80.
+No host, rode:
+sudo netstat -tuln | grep LISTEN
+
+Procure por algo como:
+tcp        0      0 0.0.0.0:80          0.0.0.0:*          LISTEN
+
+Se o OwnCloud estiver em outra porta (ex: 8080), ajuste a chamada para:
+curl http://localhost:8080/owncloud/status.php
+
+Se estiver no container ajuste para:
+curl http://host.docker.internal:8080/owncloud/status.php
+
+3)Você pode testar diretamente com o IP
+
+No host, rode:
+papaismurf@DESKTOP-JB6N8TO:~$ sudo ip a | grep inet
+    inet 127.0.0.1/8 scope host lo
+    inet6 ::1/128 scope host
+    inet 172.20.102.56/20 brd 172.20.111.255 scope global eth0
+    inet6 fe80::215:5dff:fed9:ec40/64 scope link
+
+Pegue o IP da interface do host (geralmente 172.x.x.x se for bridge), e no terminal(cmd) rode:
+curl http://172.20.102.56:8080/owncloud/status.php
+Se funcionar com o IP, o problema é só de DNS interno 
+Caso você esteja usando o docker: (host.docker.internal não está sendo resolvido).
+
+Insomnia/Postman:
+a)Método PROPFIND: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/ (listar todos os diretórios)
+b)Método PROPFIND: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work (listar um diretório)
+c)Metodo PROPFIND: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work/file01.csv (listar um arquivo)
+d)Método GET: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work/file01.csv (mostrar todas as linhas do arquivo)
+
+e)Método MOVE: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work/file01.csv (mover 1 arquivo)
+Na aba "Headers" → Clique em + Add Header
+Adicione:
+Key: Destination
+Value: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/finalizado/file01.csv
+Key: Overwrite
+Value: T (para substituir caso já exista um arquivo com o mesmo nome)
+Na aba "Auth" → Escolha Basic Auth e adicione:
+Username: owncloud_admin
+Password: sua_senha
+Clique em "Send"
+
+Usando cURL no terminal:
+a)curl -u "owncloud_admin:sua_senha" -X PROPFIND "http://localhost/owncloud/remote.php/dav/files/owncloud_admin/" -H "Depth: 1" (listar todos os diretórios)
+b)curl -u "owncloud_admin:sua_senha" -X PROPFIND "http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work" -H "Depth: 1" (listar um diretório)
+c)curl -u "owncloud_admin:sua_senha" -X PROPFIND "http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work/file01.csv" -H "Depth: 1" (listar um arquivo)
+d)curl -u "owncloud_admin:sua_senha" -X GET "http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work/file01.csv" -H "Depth: 1" (mostrar todas as linhas do arquivo)
+
+e)curl -u "owncloud_admin:sua_senha" ^
+     -X MOVE ^
+     "http://localhost/owncloud/remote.php/dav/files/owncloud_admin/work/file01.csv" ^
+     -H "Depth: 1" ^
+     -H "Destination: http://localhost/owncloud/remote.php/dav/files/owncloud_admin/finalizado/file01.csv" (mover 1 arquivo)
