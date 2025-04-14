@@ -20,7 +20,7 @@ sudo apt remove --purge owncloud-server
 b)Se você instalou via repositório oficial:
 sudo apt remove --purge owncloud-complete-files
 
-c)Depois, limpe pacotes não utilizados:
+c)Depois limpe os pacotes não utilizados:
 sudo apt autoremove
 
 3)Remover diretórios do OwnCloud
@@ -32,11 +32,21 @@ sudo rm -rf /var/www/html/owncloud
 
 4)Remover Banco de Dados do OwnCloud
 a)Se o OwnCloud usava MySQL/MariaDB, remova o banco de dados e usuário:
+Inicie o MySQL se ele estiver parado:
+sudo systemctl start mysql
+Depois rode o comando:
 sudo mysql -u root -p
 
 b)No MySQL, rode:
+Esse comando irá exibir uma lista de banco de dados.
+SHOW DATABASES;
+Depois:
 DROP DATABASE owncloud;
-DROP USER 'owncloud'@'localhost';
+
+Esse comando irá exibir uma lista de usuários do MySQL junto com os respectivos hosts associados a cada um.
+SELECT User, Host FROM mysql.user;
+Depois:
+DROP USER 'owncloud_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 
@@ -54,8 +64,8 @@ sudo rm -rf /etc/apache2/sites-enabled/owncloud.conf
 sudo systemctl restart apache2
 
 b)Se o OwnCloud instalou pacotes extras do PHP e você quiser removê-los:
-sudo apt remove --purge php*
-sudo apt autoremove
+sudo apt remove --purge php* -y
+sudo apt autoremove -y
 
 6)Verificar se ainda há vestígios
 a)Depois de remover tudo, verifique:
@@ -87,7 +97,7 @@ sudo apt autoremove -y
 sudo apt autoclean
 
 9)Remover os diretórios do MySQL
-a)Agora, excluímos os arquivos de configuração e os bancos de dados:
+a)Agora, vamos excluir os arquivos de configuração e os bancos de dados:
 sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql
 
 b)Verifique se o MySQL sumiu:
@@ -107,17 +117,15 @@ sudo kill -9 <PID>
 
 Agora o MySQL está completamente removido do sistema. 
 
-Como instalar o servidor Owncloud no Windows 10 (WSL)
-Instalar o Owncloud Server no Windows 10 via Ubuntu
+Como instalar o Owncloud Server no Windows 10 via Ubuntu (WSL 2)
 
 O servidor ownCloud é uma solução de armazenamento em nuvem de código aberto com recursos de reprodução multimídia e 
 compartilhamento de arquivos. Ele pode ser instalado em plataformas Linux sem problemas e precisa ser instalado para desempenho e 
 estabilidade adequados. No entanto, usuários familiarizados com o sistema operacional Windows instalam o servidor ownCloud usando o 
-servidor web IIS do Windows ou software de terceiros, como servidores XAMPP ou WAMP. Mas neste tutorial, não usaremos nenhum deles 
-para instalar o servidor ownCloud no Windows 10 ou qualquer software de máquina virtual como Virtualbox/Vmware. Em vez do método 
-tradicional, usamos o Subsistema Windows para Linux (WSL) para melhor estabilidade e desempenho. O aplicativo de ambiente Linux que 
-usaremos para isso é o Ubuntu. Vamos ver como fazer isso. A versão mais recente do ownCloud enquanto este tutorial estava sendo 
-escrito era o ownCloud 10.15.2.
+servidor web IIS do Windows ou software de terceiros, como servidores XAMPP ou WAMP. Mas não usaremos nenhum deles para instalar o 
+servidor ownCloud no Windows 10 ou qualquer software de máquina virtual como Virtualbox/Vmware. Em vez do método tradicional usaremos
+o Subsistema Windows para Linux (WSL) para melhor estabilidade e desempenho. O aplicativo de ambiente Linux que usaremos para isso 
+será o Ubuntu. A versão mais recente do ownCloud enquanto este tutorial estava sendo escrito era o ownCloud 10.15.2.
 
 Etapa 1: habilitar o subsistema Windows para Linux (WSL)
 Para habilitar o recurso Subsistema Windows para Linux no Windows 10, vá para a caixa de pesquisa, digite “ Ativar ou desativar 
@@ -130,9 +138,9 @@ Na caixa de pesquisa do Windows 10 ou no programa, liste a busca pela loja da Mi
 para baixar e instalar. Após a instalação, clique no botão Launch , que estende o bash do Ubuntu ou a tela de comando de onde 
 podemos usar todos os comandos do Ubuntu, exceto alguns diretamente no Windows 10.
 
-Etapa 3: Instale Apache, MySql mais PHP7.4 no Windows 10(via Ubuntu)
+Etapa 3: Instale Apache, MySql e PHP7.4 no Windows 10(via Ubuntu)
 Antes de instalar o Owncloud 10.15.2, precisamos configurar um ambiente de servidor web e uma configuração LAMP (Linux, Apache, 
-MySQL, PHP) no Linux . Aqui está o comando que precisamos executar para instalar Apache+PHP+MySQL. 
+MySQL, PHP) no Linux . Aqui estão os comandos que precisamos executar para instalar Apache+PHP+MySQL. 
 Comandos corretos para instalar o LAMP no Ubuntu, que é o sistema operacional mais adequado para rodar o ownCloud em um servidor.
 
 a)Atualizar o Sistema
@@ -196,12 +204,13 @@ sudo a2dismod php8.3
 h)Reiniciar o Apache
 Após instalar o PHP e os módulos, reinicie o Apache para que as alterações tenham efeito:
 sudo systemctl restart apache2
-Com estes passos, você terá configurado um ambiente LAMP no seu servidor Ubuntu com PHP 7.4, pronto para instalar o ownCloud.
+Com esses passos, você terá configurado um ambiente LAMP no seu servidor Ubuntu com PHP 7.4, pronto para instalar o ownCloud.
 
 Etapa 4: verifique a instalação do Apache no Windows 10
 Para verificar se nosso servidor Apache está funcionando, vá para o seu navegador Windows 10 e digite http://localhost/ ou 
 http://127.0.0.1/ ou o endereço IP da sua máquina local Windows 10. Você pode descobrir o endereço IP digitando Ip a . Ao digitar o 
 endereço IP, a página de teste do Apache será aberta, o que significa que está tudo bem e é hora de passar para a próxima etapa.
+IP localhost:  172.20.102.56
 
 Etapa 5: Baixe o servidor Owncloud  
 Aqui está o comando para obter os arquivos necessários para configurar o OwnCloud:
@@ -239,7 +248,7 @@ Em um ambiente Linux para um servidor web como o Apache, ambos os comandos são 
 diferentes:
 
 chown garante que o servidor web (Apache, executando como usuário www-data) seja o proprietário dos arquivos do ownCloud. Isso é 
-crucial para que o Apache tenha permissão para ler e, mais importante, escrever nos arquivos do ownCloud.  O ownCloud precisa gravar 
+crucial para que o Apache tenha permissão para ler e, mais importante, escrever nos arquivos do ownCloud. O ownCloud precisa gravar 
 arquivos para coisas como uploads de usuários, configurações e logs.
 
 chmod define as permissões sobre o que o proprietário, o grupo e outros podem fazer com os arquivos. 755 é um valor típico para 
@@ -294,7 +303,7 @@ Alias /owncloud "/var/www/owncloud/"
     SetEnv HTTP_HOME /var/www/owncloud
 </Directory>
 
-Após adicionar essas linhas, pressione CTRL + O para salvar o arquivo e CTRL + X para sair do editor.
+Após adicionar essas linhas, pressione CTRL + O para salvar o arquivo, Enter e depois CTRL + X para sair do editor.
 
 Agora, ative o site do OwnCloud no Apache com o seguinte comando:
 
@@ -327,26 +336,43 @@ b)Agora, vamos criar um usuário e um banco de dados MySQL para o ownCloud:
 sudo mysql -u root -p
 Você será solicitado a inserir a senha do usuário root do MySQL.
 
-c)Estamos criando um banco de dados com o nome owncloud. Você pode usar outro nome, se preferir.
+c)Listar todos os usuários do banco de dados MySQL:
+mysql> SELECT user FROM mysql.user;
++------------------+
+| user             |
++------------------+
+| mysql.infoschema |
+| mysql.session    |
+| mysql.sys        |
+| owncloud_user    |
+| root             |
++------------------+
+
+d)Estamos criando um banco de dados com o nome owncloud. Você pode usar outro nome, se preferir.
 CREATE DATABASE owncloud;
 
-d)Agora, crie um usuário com uma senha e, ao mesmo tempo, atribua todos os direitos do banco de dados criado acima a ele. Aqui, 
+e)Agora, crie um usuário com uma senha e, ao mesmo tempo, atribua todos os direitos do banco de dados criado acima a ele. Aqui, 
 estamos criando um usuário com o nome owncloud_user e uma senha para ele. Você pode usar seu nome de usuário e senha:
-CREATE USER 'owncloud_user'@'localhost' IDENTIFIED WITH mysql_native_password BY 'bocetadoce';  
+CREATE USER 'owncloud_user'@'localhost' IDENTIFIED BY 'SUA_SENHA';
 GRANT ALL PRIVILEGES ON owncloud.* TO 'owncloud_user'@'localhost' WITH GRANT OPTION;
 
-e)Agora, aplique as alterações com:
+Conceder permissões ao usuário do OwnCloud:
+GRANT ALL PRIVILEGES ON owncloud.* TO 'owncloud_user'@'localhost' IDENTIFIED BY 'SUA_SENHA';
 FLUSH PRIVILEGES;
 
-f)Saia do MySQL usando o comando:
+f)Agora, aplique as alterações com:
+FLUSH PRIVILEGES;
+
+g)Saia do MySQL usando o comando:
 exit
 
-Etapa 10: Instalar, configurar e configurar o servidor ownCloud no Windows 10 (via WSL)
+Etapa 10: Instalar e configurar o servidor ownCloud no Windows 10 (via WSL)
 
 a)Após realizar todas as etapas acima, vá ao navegador e digite:
 http://localhost/owncloud/ ou http://127.0.0.1/owncloud/ ou o endereço IP da sua máquina local Windows 10, 
 http://[IP_da_sua_máquina]/owncloud/. Assim como fizemos ao verificar se o Apache funciona acima. No entanto, desta vez, você verá 
-a tela de configuração e configuração do servidor ownCloud, em vez da do Apache.
+a tela de configuração do servidor ownCloud, em vez da do Apache.
+IP da máquina local: http://172.20.102.56/owncloud/
 
 b)Criar uma conta de administrador:
 Na tela de configuração, insira um nome de usuário e uma senha para criar a conta de administrador do OwnCloud.
@@ -358,6 +384,9 @@ Usuário do banco de dados: owncloud_user
 Senha: boceadoce
 Nome do banco de dados: owncloud
 Servidor do banco de dados: localhost:3306
+
+Se quiser que o sistema encontre uma porta livre para você, use este comando no terminal:
+comm -23 <(seq 1024 65535 | sort) <(sudo netstat -tuln | awk '{print $4}' | awk -F: '{print $NF}' | sort -u)
 
 Após inserir todas as informações corretamente, role a página para baixo e clique em Concluir Configuração.
 
@@ -376,3 +405,4 @@ sistema e baixe o aplicativo para sincronizar arquivos automaticamente.
 
 Instalamos o OwnCloud Server no Windows 10 usando o Ubuntu no WSL, garantindo alto desempenho e estabilidade, sem precisar usar 
 softwares como XAMPP ou WAMP.
+
