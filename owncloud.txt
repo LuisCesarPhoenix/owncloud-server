@@ -1,3 +1,5 @@
+Instalação e Configuração do OwnCloud Server no Ubuntu 22.04 (WSL 2)
+
 Preparando o ambiente antes de instalar o Owncloud Server para fazer uma instalação limpa 
 
 Vamos desinstalar tudo relacionado ao OwnCloud sem afetar o restante do sistema. Vamos listar os passos com segurança para evitar 
@@ -30,30 +32,33 @@ sudo rm -rf /etc/owncloud
 sudo rm -rf /var/lib/owncloud
 sudo rm -rf /var/www/html/owncloud
 
-4)Remover Banco de Dados do OwnCloud
+4)Remover o Banco de Dados do OwnCloud
 a)Se o OwnCloud usava MySQL/MariaDB, remova o banco de dados e usuário:
 Inicie o MySQL se ele estiver parado:
 sudo systemctl start mysql
 Depois rode o comando:
 sudo mysql -u root -p
+insira a senha de administrador
 
 b)No MySQL, rode:
-Esse comando irá exibir uma lista de banco de dados.
-SHOW DATABASES;
-Depois:
-DROP DATABASE owncloud;
+i.	Esse comando irá exibir uma lista de banco de dados.
+	SHOW DATABASES;
 
-Esse comando irá exibir uma lista de usuários do MySQL junto com os respectivos hosts associados a cada um.
-SELECT User, Host FROM mysql.user;
-Depois:
-DROP USER 'owncloud_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+ii.	Depois:
+	DROP DATABASE owncloud;
 
-c)Se usava PostgreSQL:
+iii.  Esse comando irá exibir uma lista de usuários do MySQL junto com os respectivos hosts associados a cada um.
+	SELECT User, Host FROM mysql.user;
+
+iv.	Depois:
+	DROP USER 'owncloud_user'@'localhost';
+	FLUSH PRIVILEGES;
+	EXIT;
+
+c. Se usava PostgreSQL:
 sudo -u postgres psql
 
-d)E dentro do PostgreSQL:
+d. E dentro do PostgreSQL:
 DROP DATABASE owncloud;
 DROP USER owncloud;
 
@@ -115,17 +120,18 @@ b)Se houver algo ocupando a porta, mate o processo:
 sudo kill -9 <PID>
 (Substitua <PID> pelo número do processo que aparecer no comando anterior.)
 
-Agora o MySQL está completamente removido do sistema. 
+c)Agora o MySQL foi completamente removido do sistema. 
 
 Como instalar o Owncloud Server no Windows 10 via Ubuntu (WSL 2)
 
 O servidor ownCloud é uma solução de armazenamento em nuvem de código aberto com recursos de reprodução multimídia e 
-compartilhamento de arquivos. Ele pode ser instalado em plataformas Linux sem problemas e precisa ser instalado para desempenho e 
-estabilidade adequados. No entanto, usuários familiarizados com o sistema operacional Windows instalam o servidor ownCloud usando o 
-servidor web IIS do Windows ou software de terceiros, como servidores XAMPP ou WAMP. Mas não usaremos nenhum deles para instalar o 
-servidor ownCloud no Windows 10 ou qualquer software de máquina virtual como Virtualbox/Vmware. Em vez do método tradicional usaremos
-o Subsistema Windows para Linux (WSL) para melhor estabilidade e desempenho. O aplicativo de ambiente Linux que usaremos para isso 
-será o Ubuntu. A versão mais recente do ownCloud enquanto este tutorial estava sendo escrito era o ownCloud 10.15.2.
+compartilhamento de arquivos. Ele pode ser instalado em plataformas Linux sem problemas e precisa ser instalado nesse ambiente para 
+desempenho e estabilidade adequados. No entanto, usuários familiarizados com o sistema operacional Windows instalam o servidor 
+ownCloud usando o servidor web IIS do Windows ou software de terceiros, como servidores XAMPP ou WAMP. Mas não usaremos nenhum deles 
+para instalar o servidor ownCloud no Windows 10 ou qualquer software de máquina virtual como Virtualbox/Vmware. Em vez do método 
+tradicional usaremos o Subsistema Windows para Linux (WSL) para melhor estabilidade e desempenho. O aplicativo de ambiente Linux que 
+usaremos para isso será o Ubuntu. A versão mais recente do ownCloud enquanto este tutorial estava sendo escrito era o 
+ownCloud 10.15.2.
 
 Etapa 1: habilitar o subsistema Windows para Linux (WSL)
 Para habilitar o recurso Subsistema Windows para Linux no Windows 10, vá para a caixa de pesquisa, digite “ Ativar ou desativar 
@@ -303,6 +309,14 @@ Alias /owncloud "/var/www/owncloud/"
     SetEnv HTTP_HOME /var/www/owncloud
 </Directory>
 
+<VirtualHost *:8080>
+    DocumentRoot /var/www/owncloud
+    ServerName localhost
+    # Certifique-se de que o diretório 'owncloud' e os arquivos de log estejam corretos
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+
 Após adicionar essas linhas, pressione CTRL + O para salvar o arquivo, Enter e depois CTRL + X para sair do editor.
 
 Agora, ative o site do OwnCloud no Apache com o seguinte comando:
@@ -369,10 +383,11 @@ exit
 Etapa 10: Instalar e configurar o servidor ownCloud no Windows 10 (via WSL)
 
 a)Após realizar todas as etapas acima, vá ao navegador e digite:
-http://localhost/owncloud/ ou http://127.0.0.1/owncloud/ ou o endereço IP da sua máquina local Windows 10, 
+http://localhost:8080/owncloud/ ou http://127.0.0.1:8080/owncloud/ ou o endereço IP da sua máquina local Windows 10, 
 http://[IP_da_sua_máquina]/owncloud/. Assim como fizemos ao verificar se o Apache funciona acima. No entanto, desta vez, você verá 
 a tela de configuração do servidor ownCloud, em vez da do Apache.
-IP da máquina local: http://172.20.102.56/owncloud/
+Teste no WSL 2: curl -I http://localhost:8080/owncloud
+IP da máquina local: http://172.20.102.56:8080/owncloud/
 
 b)Criar uma conta de administrador:
 Na tela de configuração, insira um nome de usuário e uma senha para criar a conta de administrador do OwnCloud.
